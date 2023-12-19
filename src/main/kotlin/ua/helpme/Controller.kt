@@ -10,24 +10,23 @@ import java.io.PrintStream
 class Controller {
     @GetMapping("/find_routes")
     fun findRoutes(content: String): String {
-        return runBlocking {
+        val result = PathfinderParser.parseGraph(content)
 
-            val result = PathfinderParser.parseGraph(content)
+        if (result.isFailure)
+            return result.exceptionOrNull()!!.message!!
+        val graph = result.getOrNull()!!
 
-            if (result.isFailure)
-                return@runBlocking result.exceptionOrNull()!!.message!!
-            val graph = result.getOrNull()!!
+        val pathsList = graph.findAllPaths()
 
-            val pathsList = graph.findAllPaths()
-
+        runBlocking {
             pathsList.sortPaths(pathsList.size > 25)
-
-            return@runBlocking  String(ByteArrayOutputStream().use { byteArrayOutputStream ->
-                PrintStream(byteArrayOutputStream).use { printStream ->
-                    pathsList.printPathsTo(printStream)
-                }
-                byteArrayOutputStream
-            }.toByteArray())
         }
+
+        return String(ByteArrayOutputStream().use { byteArrayOutputStream ->
+            PrintStream(byteArrayOutputStream).use { printStream ->
+                pathsList.printPathsTo(printStream)
+            }
+            byteArrayOutputStream
+        }.toByteArray())
     }
 }
