@@ -46,7 +46,7 @@ object PathfinderParser {
 
         if (names[0].length == names[1].length) { // kind of optimization
             var notEquals = true
-            for (index in 0..<names[0].length) {
+            for (index in names[0].indices) {
                 val char1 = names[0][index]
                 val char2 = names[1][index]
 
@@ -84,7 +84,13 @@ object PathfinderParser {
                 continue
             }
 
-            if (line.isBlank()) continue
+
+            if (line.isBlank()) {
+                if (index != lines.lastIndex)
+                    return Result.failure(Exception("error: line ${index + 1} is not valid"))
+
+                continue
+            }
 
             val (node1Name, node2Name, length) = parseLine(line)
                 ?: return Result.failure(Exception("error: line ${index + 1} is not valid"))
@@ -124,7 +130,11 @@ object PathfinderParser {
             }
 
         return fileReader.use { reader ->
-            parseContent(reader.readText())
+            val content = reader.readText()
+
+            if (content.isEmpty()) return Result.failure(Exception("error: file $filename is empty"))
+
+            parseContent(content)
         }
     }
 
