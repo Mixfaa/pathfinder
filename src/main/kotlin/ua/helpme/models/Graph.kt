@@ -70,7 +70,7 @@ class Graph(private val nodes: List<Node>, val connections: List<NodeConnection>
 
 
     fun findAllPaths(): MutableList<Path> {
-        val pathList = mutableListOf<Path>()
+        val pathList = ArrayList<Path>(this.nodes.size * this.nodes.size) // from each node to each
 
         for (startNode in nodes) {
             val costsList = initCostsForStartNode(startNode)

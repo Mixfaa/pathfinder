@@ -45,7 +45,7 @@ object PathfinderParser {
         if (length <= 0) return null
 
         if (names[0].length == names[1].length) { // kind of optimization
-            var notEquals = true
+            var equals = true
             for (index in names[0].indices) {
                 val char1 = names[0][index]
                 val char2 = names[1][index]
@@ -53,10 +53,10 @@ object PathfinderParser {
                 if (!char1.isLetter() || !char2.isLetter())
                     return null
 
-                if (char1 == char2 && notEquals)
-                    notEquals = false
+                if (char1 != char2 && equals)
+                    equals = false
 
-                if (index == names[0].lastIndex && !notEquals)
+                if (index == names[0].lastIndex && equals)
                     return null
             }
 
@@ -75,25 +75,18 @@ object PathfinderParser {
         val idGenerator = IdGenerator()
 
         var expectedNodesCount = 0
-        val lines = content.split('\n')
+        val lines = content.trim().split('\n')
         for ((index, line) in lines.withIndex()) {
             if (index == 0) {
                 val nodesCount = line.toIntOrNull()
-                    ?: return Result.failure(Exception("error: line 1 is not valid"))
+                    ?: return Result.failure(Throwable("error: line 1 is not valid"))
                 expectedNodesCount = nodesCount
                 continue
             }
 
 
-            if (line.isBlank()) {
-                if (index != lines.lastIndex)
-                    return Result.failure(Exception("error: line ${index + 1} is not valid"))
-
-                continue
-            }
-
             val (node1Name, node2Name, length) = parseLine(line)
-                ?: return Result.failure(Exception("error: line ${index + 1} is not valid"))
+                ?: return Result.failure(Throwable("error: line ${index + 1} is not valid"))
 
             if (connections.any { it.isBetweenNodesWithNames(node1Name, node2Name) }) {
                 priorityDependentExceptions.add(DuplicateBridges())
@@ -126,20 +119,20 @@ object PathfinderParser {
             try {
                 FileReader(filename)
             } catch (ex: FileNotFoundException) {
-                return Result.failure(Exception("error: file $filename does not exist"))
+                return Result.failure(Throwable("error: file $filename does not exist"))
             }
 
         return fileReader.use { reader ->
             val content = reader.readText()
 
-            if (content.isEmpty()) return Result.failure(Exception("error: file $filename is empty"))
+            if (content.isEmpty()) return Result.failure(Throwable("error: file $filename is empty"))
 
             parseContent(content)
         }
     }
 
     fun parseGraph(content: String): Result<Graph> {
-        if (content.isEmpty()) return Result.failure(Exception("error: file is empty"))
+        if (content.isEmpty()) return Result.failure(Throwable("error: file is empty"))
         return parseContent(content)
     }
 }
